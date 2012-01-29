@@ -1,0 +1,51 @@
+Array of n elements and you find to find the kth element
+
+LOOP
+	LOOP
+		divide the array into n/256 chunks
+
+		CUDA
+			one thread to each value.
+			group by 8 into chunks
+			perform parallel bubble sort on the 8 values
+			find the median round down aka position 4
+		END CUDA
+
+		new array of n/256 elements. each element is one of the medians
+	REPEAT until n < 256
+
+	CUDA
+		odd-even parallel sort remaining elements
+	END CUDA
+
+	median m has been found
+
+	divide the original array into n/256 chunks
+
+	LOOP
+		CUDA
+			one thread to each value
+			each thread reports if it is less than m
+			totaled up
+			also make a new array of 256 elements
+			use prefix sum to determine each threads write position
+			[0,1,2,2,2,3,3,4,5....]
+		END CUDA
+
+		perform prefix sum on the totals of less than m
+		chunk 1 = 100 < m, chunk 2 = 78 < m, chunk 3 = 200 < m
+		[0,100, 178, 378...]
+
+		CUDA
+			each thread writes to its chunk offset + its thread offset
+		END CUDA
+	REPEAT for equal to and greater than
+
+	now all elements less than m are in one half and all elements greater than are in the top half.
+
+	take whichever half of the array k is in
+	n now equals that half of the array
+
+REPEAT until less than 256 elements remain in the half
+
+perform odd even parallel sort to find the kth value.
